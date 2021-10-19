@@ -238,13 +238,12 @@ if __name__ == '__main__':
                          csv_output_filename=output_filename)
     inst.parse_tender = parse_tender
 
-    while 1:
-        try:
-            loop_through_ids()
-            time.sleep(3600)
-        except Exception as e:
-            log.error("This should have never happened:")
-            log.error(e)
-            break
+    try:
+        loop_through_ids()
+        time.sleep(3600)
+    except Exception as e:
+        log.error("This should have never happened:")
+        log.error(e)
+        break
 
 
