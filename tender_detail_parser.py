@@ -1,6 +1,6 @@
 import logging as log
 import pandas as pd
-from prozorro_public_api_parser import RequestParser
+from prozorro_public_api_parser import ProzorroCronScrapper
 import time
 import parser_utils.awards_parser as awards_parser
 import parser_utils.bids_parser as bids_parser
@@ -232,10 +232,10 @@ def loop_through_ids():
 if __name__ == '__main__':
     print('Starting to extract tender details:')
     dk_codes_tuple = ('72410000-7', '72411000-4')
-    inst = RequestParser(date_offset='2021-07-20',
-                         category='tenders',
-                         dk_code=dk_codes_tuple,
-                         csv_output_filename=output_filename)
+    inst = ProzorroCronScrapper(date_offset='2021-07-20',
+                                category='tenders',
+                                dk_code=dk_codes_tuple,
+                                csv_output_filename=output_filename)
     inst.parse_tender = parse_tender
 
     try:
@@ -244,6 +244,5 @@ if __name__ == '__main__':
     except Exception as e:
         log.error("This should have never happened:")
         log.error(e)
-        break
 
 

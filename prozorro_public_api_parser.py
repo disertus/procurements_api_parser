@@ -11,7 +11,7 @@ import parser_utils.config as cfg
 #todo: store the timestamp of the last offset for each iteration, execution should start from it
 
 
-class RequestParser:
+class ProzorroCronScrapper:
     base_url = 'https://api.openprocurement.org/api/2.5/'
     
     def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str, interval: float = 0.7):
@@ -89,10 +89,10 @@ class RequestParser:
 if __name__ == '__main__':
         print('Beginning to retrieve the API data')
         dk_codes_tuple = ('72410000-7', '72411000-4')
-        parser = RequestParser(date_offset='2021-10-04T08:45:00.813088+03:00',
-                               category='tenders',
-                               dk_code=dk_codes_tuple,
-                               csv_output_filename='data.csv')
+        parser = ProzorroCronScrapper(date_offset='2021-10-04T08:45:00.813088+03:00',
+                                      category='tenders',
+                                      dk_code=dk_codes_tuple,
+                                      csv_output_filename='data.csv')
         db.create_database()
         parser.loop_through_pages()
 

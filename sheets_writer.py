@@ -66,4 +66,3 @@ if __name__ == "__main__":
 
     except Exception as err:
         log.error(err)
-        break
