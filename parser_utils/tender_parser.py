@@ -1,13 +1,5 @@
-
-
-
-def error_handler(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            return "NaN"
-    return wrapper
+import logging as log
+from prozorro_api_parser.parser_utils.awards_parser import error_handler
 
 
 @error_handler
@@ -136,14 +128,17 @@ def get_tender_lots_count(data):
 def get_tender_auction_start_date(data):
     try:
         return data['lots'][0]['auctionPeriod']['startDate']
-    except Exception as err:
-        try:
-            return data['auctionPeriod']['startDate']
-        except Exception as err:
-            try:
-                return data['awardPeriod']['startDate']
-            except Exception as err: 
-                raise
+    except KeyError as err:
+        log.debug(f'Auction date is absent in lots info: {err}')
+    try:
+        return data['auctionPeriod']['startDate']
+    except KeyError as err:
+        log.debug(f'Auction date is absent in tender info: {err}')
+    try:
+        return data['awardPeriod']['startDate']
+    except KeyError as err:
+        log.debug(f'No data about auction date was found: {err}')
+        return "NaN"
 
 
 

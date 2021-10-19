@@ -1,11 +1,4 @@
-def error_handler(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            return "NaN"
-    return wrapper
-
+from prozorro_api_parser.parser_utils.awards_parser import error_handler
 
 
 @error_handler
@@ -21,7 +14,6 @@ def get_item_description(tender_item):
 @error_handler
 def get_item_quantity(tender_item):
     return tender_item['quantity']
-
 
 
 @error_handler
@@ -63,7 +55,3 @@ def get_item_region(tender_item):
 def get_item_postal_code(tender_item):
     return tender_item['deliveryAddress']['postalCode']
 
-
-
-if __name__ == "__main__":
-    print("Initialized")

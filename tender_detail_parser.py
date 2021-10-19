@@ -1,6 +1,6 @@
-from prozorro_api_parser import RequestParser
-import requests
+import logging as log
 import pandas as pd
+from prozorro_public_api_parser import RequestParser
 import time
 import parser_utils.awards_parser as awards_parser
 import parser_utils.bids_parser as bids_parser
@@ -9,130 +9,114 @@ import parser_utils.items_parser as items_parser
 import parser_utils.lots_parser as lots_parser
 import parser_utils.tender_parser as tender_parser
 import parser_utils.sqlite_database_utils as db
-
+from tqdm import tqdm
 
 
 output_filename = 'tender_details.csv'
 
 
 def parse_lots(response_body):
-    try:
-        data = response_body['data']
+    data = response_body['data']
+    tender_id = tender_parser.get_tender_id(data)
 
-        for lot in data['lots']:
-            values_list = []
-            values_list.append(tender_parser.get_tender_id(data))
-            values_list.append(lots_parser.get_lot_id(lot))
-            values_list.append(lots_parser.get_lot_title(lot))
-            values_list.append(lots_parser.get_lot_status(lot))
-            values_list.append(lots_parser.get_lot_price(lot))
-            values_list.append(lots_parser.get_lot_auction_period(lot))
-        
-            yield values_list
+    for lot in data['lots']:
+        values_list = []
+        values_list.append(tender_id)
+        values_list.append(lots_parser.get_lot_id(lot))
+        values_list.append(lots_parser.get_lot_title(lot))
+        values_list.append(lots_parser.get_lot_status(lot))
+        values_list.append(lots_parser.get_lot_price(lot))
+        values_list.append(lots_parser.get_lot_auction_period(lot))
 
-    except:
-        raise
+        yield values_list
 
 
 def parse_items(response_body):
-    try:
-        data = response_body['data']
+    data = response_body['data']
+    tender_id = tender_parser.get_tender_id(data)
 
-        for item in data['items']:
-            values_list = []
-            values_list.append(tender_parser.get_tender_id(data))
-            values_list.append(items_parser.get_item_related_lot_id(item))
-            values_list.append(items_parser.get_item_id(item))
-            values_list.append(items_parser.get_item_dk_code(item))
-            values_list.append(items_parser.get_item_delivery_end_date(item))
-            values_list.append(items_parser.get_item_quantity(item))
-            values_list.append(items_parser.get_item_scheme(item))
-            values_list.append(items_parser.get_item_city(item))
-            values_list.append(items_parser.get_item_region(item))
-            values_list.append(f"'{items_parser.get_item_postal_code(item)}")
+    for item in data['items']:
+        values_list = []
+        values_list.append(tender_id)
+        values_list.append(items_parser.get_item_related_lot_id(item))
+        values_list.append(items_parser.get_item_id(item))
+        values_list.append(items_parser.get_item_dk_code(item))
+        values_list.append(items_parser.get_item_delivery_end_date(item))
+        values_list.append(items_parser.get_item_quantity(item))
+        values_list.append(items_parser.get_item_scheme(item))
+        values_list.append(items_parser.get_item_city(item))
+        values_list.append(items_parser.get_item_region(item))
+        values_list.append(f"'{items_parser.get_item_postal_code(item)}")
 
-            yield values_list
-
-    except:
-        raise
+        yield values_list
 
 
 def parse_bids(response_body):
-    try:
-        data = response_body['data']
+    data = response_body['data']
+    tender_id = tender_parser.get_tender_id(data)
 
-        for bid in data['bids']:
-            for lot_value in bid['lotValues']:
-                values_list = []
-                values_list.append(tender_parser.get_tender_id(data))
-                values_list.append(bids_parser.get_bid_lot_value_related_lot_id(lot_value))
-                values_list.append(bids_parser.get_bid_id(bid))
-                values_list.append(bids_parser.get_bid_status(bid))
-                values_list.append(bids_parser.get_bid_tenderer_id(bid))
-                values_list.append(bids_parser.get_bid_tenderer_name(bid))
-                values_list.append(bids_parser.get_bid_timestamp(bid))
-                values_list.append(bids_parser.get_bid_lot_value_amount(lot_value))
-                values_list.append(bids_parser.get_bid_lot_value_VAT(lot_value))
-                values_list.append(bids_parser.get_bid_lot_value_participation_url(lot_value))
+    for bid in data['bids']:
+        for lot_value in bid['lotValues']:
+            values_list = []
+            values_list.append(tender_id)
+            values_list.append(bids_parser.get_bid_related_lot_id(lot_value))
+            values_list.append(bids_parser.get_bid_id(bid))
+            values_list.append(bids_parser.get_bid_status(bid))
+            values_list.append(bids_parser.get_bid_tenderer_id(bid))
+            values_list.append(bids_parser.get_bid_tenderer_name(bid))
+            values_list.append(bids_parser.get_bid_timestamp(bid))
+            values_list.append(bids_parser.get_bid_lot_value_amount(lot_value))
+            values_list.append(bids_parser.get_bid_lot_value_VAT(lot_value))
+            values_list.append(bids_parser.get_bid_related_participation_url(lot_value))
 
-
-                yield values_list
-
-    except:
-        raise   
+            yield values_list
 
 
 def parse_awards(response_body):
-    try:
-        data = response_body['data']
+    data = response_body['data']
+    tender_id = tender_parser.get_tender_id(data)
 
-        for award in data['awards']:
-            values_list = []
-            values_list.append(tender_parser.get_tender_id(data))
-            values_list.append(awards_parser.get_award_id(award))
-            values_list.append(awards_parser.get_award_status(award))
-            values_list.append(awards_parser.get_award_price(award))
-            values_list.append(awards_parser.get_award_supplier_name(award))
-            values_list.append(awards_parser.get_award_supplier_id(award))
-            values_list.append(awards_parser.get_award_supplier_contact_name(award))
-            values_list.append(awards_parser.get_award_supplier_contact_phone(award))
-            values_list.append(awards_parser.get_award_supplier_contact_email(award))
-            values_list.append(awards_parser.get_award_lot_id(award))
-            values_list.append(awards_parser.get_award_bid_id(award))
-        
-            yield values_list
+    for award in data['awards']:
+        values_list = []
+        values_list.append(tender_id)
+        values_list.append(awards_parser.get_award_id(award))
+        values_list.append(awards_parser.get_award_status(award))
+        values_list.append(awards_parser.get_award_price(award))
+        values_list.append(awards_parser.get_award_supplier_name(award))
+        values_list.append(awards_parser.get_award_supplier_id(award))
+        values_list.append(awards_parser.get_award_supplier_contact_name(award))
+        values_list.append(awards_parser.get_award_supplier_contact_phone(award))
+        values_list.append(awards_parser.get_award_supplier_contact_email(award))
+        values_list.append(awards_parser.get_award_lot_id(award))
+        values_list.append(awards_parser.get_award_bid_id(award))
 
-    except:
-        raise
+        yield values_list
 
 
 def parse_contracts(response_body):
-    try:
-        data = response_body['data']
+    data = response_body['data']
+    tender_id = tender_parser.get_tender_id(data)
 
-        for contract in data['contracts']:
-            values_list = []
-            values_list.append(tender_parser.get_tender_id(data))
-            values_list.append(contracts_parser.get_contract_award_id(contract))
-            values_list.append(contracts_parser.get_contract_id(contract))
-            values_list.append(contracts_parser.get_contract_status(contract))
-            values_list.append(contracts_parser.get_contract_date_signed(contract))
-            values_list.append(contracts_parser.get_contract_date_end(contract))
+    for contract in data['contracts']:
+        values_list = []
+        values_list.append(tender_id)
+        values_list.append(contracts_parser.get_contract_award_id(contract))
+        values_list.append(contracts_parser.get_contract_id(contract))
+        values_list.append(contracts_parser.get_contract_status(contract))
+        values_list.append(contracts_parser.get_contract_date_signed(contract))
+        values_list.append(contracts_parser.get_contract_date_end(contract))
 
-            values_list.append(contracts_parser.get_contract_supplier_name(contract))
-            values_list.append(contracts_parser.get_contract_supplier_id(contract))
-            values_list.append(contracts_parser.get_contract_supplier_contact_name(contract))
-            values_list.append(contracts_parser.get_contract_supplier_contact_phone(contract))
-            values_list.append(contracts_parser.get_contract_supplier_contact_email(contract))
+        values_list.append(contracts_parser.get_contract_supplier_name(contract))
+        values_list.append(contracts_parser.get_contract_supplier_id(contract))
+        values_list.append(contracts_parser.get_contract_supplier_contact_name(contract))
+        values_list.append(contracts_parser.get_contract_supplier_contact_phone(contract))
+        values_list.append(contracts_parser.get_contract_supplier_contact_email(contract))
 
-            values_list.append(contracts_parser.get_contract_supplier_scale(contract))
-            values_list.append(contracts_parser.get_contract_price_grosso(contract))
-            values_list.append(contracts_parser.get_contract_price_netto(contract))
-        
-            yield values_list
+        values_list.append(contracts_parser.get_contract_supplier_scale(contract))
+        values_list.append(contracts_parser.get_contract_price_grosso(contract))
+        values_list.append(contracts_parser.get_contract_price_netto(contract))
 
-    except:
-        raise
+        yield values_list
 
 
 def parse_tender(response_body):
@@ -169,17 +153,19 @@ def parse_tender(response_body):
         values_list.append(tender_parser.get_tender_plan_id(data))
         values_list.append(tender_parser.get_tender_lots_count(data))
         values_list.append(tender_parser.get_tender_auction_start_date(data))
-            
-        print(values_list)
+
         return values_list
-    except:
-        raise
+    except Exception as err:
+        log.debug(err)
 
 
 def write_to_csv(list_of_lists, output_name):
-    df = pd.DataFrame(list_of_lists)
-    df.reset_index(drop=True, inplace=True)
-    df.to_csv(output_name, index=False, header=False)
+    try:
+        df = pd.DataFrame(list_of_lists)
+        df.reset_index(drop=True, inplace=True)
+        df.to_csv(output_name, index=False, header=False)
+    except Exception as err:
+        log.debug(err)
 
 
 
@@ -191,45 +177,43 @@ def loop_through_ids():
     items_details = []
     bids_details = []
 
-    for row in db.fetch_from_database().fetchall():
-        print(row)
+    for row in tqdm(db.fetch_from_database()):
+        response_body = inst.prozorro_request(f'/{row[0]}?opt_pretty=1')
+
         try:
-            response_body = requests.get(f'{inst.base_url}/{inst.category}/{row[0]}?opt_pretty=1')
-            jsonified_response = inst.jsonify_request(response_body)
-            tender_details.append(inst.parse_tender(jsonified_response))
-            
-            try:
-                for list_item in parse_lots(jsonified_response):
-                    lots_details.append(list_item)
-            except:
-                pass
-
-            try:
-                for list_item in parse_contracts(jsonified_response):
-                    contracts_details.append(list_item)
-            except:
-                pass
-
-            try:
-                for list_item in parse_awards(jsonified_response):
-                    awards_details.append(list_item)
-            except:
-                pass
-
-            try:
-                for list_item in parse_items(jsonified_response):
-                    items_details.append(list_item)
-            except:
-                pass
-
-            try:
-                for list_item in parse_bids(jsonified_response):
-                    bids_details.append(list_item)
-            except:
-                pass
-
+            tender_details.append(inst.parse_tender(response_body))
         except Exception as err:
-            continue
+            log.debug(err)
+
+        try:
+            for list_item in parse_lots(response_body):
+                lots_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_contracts(response_body):
+                contracts_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_awards(response_body):
+                awards_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_items(response_body):
+                items_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_bids(response_body):
+                bids_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
     
     write_to_csv(tender_details, "tender_details.csv")
     write_to_csv(lots_details, "lots_details.csv")
@@ -246,16 +230,21 @@ def loop_through_ids():
 
 
 if __name__ == '__main__':
+    print('Starting to extract tender details:')
     dk_codes_tuple = ('72410000-7', '72411000-4')
-    inst = RequestParser(date_offset='2021-07-20', category='tenders', dk_code=dk_codes_tuple, csv_output_filename=output_filename, interval=3)
+    inst = RequestParser(date_offset='2021-07-20',
+                         category='tenders',
+                         dk_code=dk_codes_tuple,
+                         csv_output_filename=output_filename)
     inst.parse_tender = parse_tender
+
     while 1:
         try:
             loop_through_ids()
             time.sleep(3600)
-        except Exception as err:
-            print("This should have never happened")
-            print(err)
+        except Exception as e:
+            log.error("This should have never happened:")
+            log.error(e)
             break
 
 

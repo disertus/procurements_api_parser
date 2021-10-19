@@ -1,14 +1,4 @@
-
-
-
-def error_handler(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            return "NaN"
-    return wrapper
-
+from prozorro_api_parser.parser_utils.awards_parser import error_handler
 
 
 @error_handler
@@ -82,9 +72,3 @@ def get_contract_award_id(contract):
     return contract['awardID']
 
 
-
-
-
-
-if __name__ == "__main__":
-    print("Initialized")

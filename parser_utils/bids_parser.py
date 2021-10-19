@@ -1,11 +1,4 @@
-def error_handler(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            return "NaN"
-    return wrapper
-
+from prozorro_api_parser.parser_utils.awards_parser import error_handler
 
 
 @error_handler
@@ -44,16 +37,11 @@ def get_bid_lot_value_VAT(lot_value):
 
 
 @error_handler
-def get_bid_lot_value_related_lot_id(lot_value):
+def get_bid_related_lot_id(lot_value):
     return lot_value['relatedLot']
 
 
 @error_handler
-def get_bid_lot_value_participation_url(lot_value):
+def get_bid_related_participation_url(lot_value):
     return lot_value['participationUrl']
 
-
-
-
-if __name__ == "__main__":
-    print("Initialized")

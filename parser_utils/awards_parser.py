@@ -1,11 +1,10 @@
 
 
-
 def error_handler(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except:
+        except KeyError:
             return "NaN"
     return wrapper
 
@@ -57,7 +56,3 @@ def get_award_lot_id(award):
 @error_handler
 def get_award_bid_id(award):
     return award['bid_id']
-
-
-if __name__ == '__main__':
-    print("Initialized")

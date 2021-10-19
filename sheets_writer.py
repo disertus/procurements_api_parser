@@ -1,3 +1,4 @@
+import logging as log
 import os
 import pygsheets
 import pandas as pd
@@ -22,6 +23,7 @@ def read_csv_into_dataframe(csv_filename:str):
     print('read the csv file into dataframe')
     return df
 
+
 def format_dataframe(csv_filename):
     """Resets the index on a csv file"""
     df = read_csv_into_dataframe(csv_filename=csv_filename)
@@ -31,65 +33,27 @@ def format_dataframe(csv_filename):
     return df
 
 
+def loop_through_sheets(source_csv_filename: str, destination_tab_name: str) -> None:
+    try:
+        write_to_gs(
+            sheet_id=os.environ['GS_ID'],
+            path_to_token=os.environ['PATH_TO_GS_TOKEN'],
+            dataframe=format_dataframe(source_csv_filename),
+            tab_name=destination_tab_name
+            )
+        print(f'Successfully written data to {destination_tab_name}.')
+    except Exception as err:
+        log.error(f'An error occurred while writing {source_csv_filename} data to the {destination_tab_name} GS tab: {err}')
+
 
 if __name__ == "__main__":
+    csv_tuple = ['tender_details.csv', 'lots_details.csv', 'awards_details.csv', 'contracts_details.csv', 'items_details.csv']
+    tabs_tuple = ('Sheet1', 'lots', 'awards', 'contracts', 'items')
+
     while 1:
         try:
-            try:
-                write_to_gs(
-                        sheet_id=os.environ['GS_ID'], 
-                        path_to_token=os.environ['PATH_TO_GS_TOKEN'], 
-                        dataframe=format_dataframe('tender_details.csv'),
-                        tab_name='Sheet1'
-                        )
-                print('1/5 successfully written tenders info\n')
-            except Exception as err:
-                print(err)
-                raise
-
-            try:
-                write_to_gs(sheet_id=os.environ['GS_ID'], 
-                        path_to_token=os.environ['PATH_TO_GS_TOKEN'],
-                        dataframe=format_dataframe('lots_details.csv'),
-                        tab_name='lots'
-                        )
-                print('2/5 successfully written lots info\n')
-            except Exception as err:
-                print(err)
-                raise
-            
-            try:
-                write_to_gs(sheet_id=os.environ['GS_ID'], 
-                        path_to_token=os.environ['PATH_TO_GS_TOKEN'],
-                        dataframe=format_dataframe('awards_details.csv'),
-                        tab_name='awards'
-                        )
-                print('3/5 successfully written awards info\n')
-            except Exception as err:
-                print(err)
-                raise
-
-            try:
-                write_to_gs(sheet_id=os.environ['GS_ID'], 
-                        path_to_token=os.environ['PATH_TO_GS_TOKEN'],
-                        dataframe=format_dataframe('contracts_details.csv'),
-                        tab_name='contracts'
-                        )
-                print('4/5 successfully written contracts info\n')
-            except Exception as err:
-                print(err)
-                raise
-
-            try:
-                write_to_gs(sheet_id=os.environ['GS_ID'], 
-                        path_to_token=os.environ['PATH_TO_GS_TOKEN'],
-                        dataframe=format_dataframe('items_details.csv'),
-                        tab_name='items'
-                        )
-                print('5/5 successfully written contracts info\n')
-            except Exception as err:
-                print(err)
-                raise
+            for csv, tab in zip(csv_tuple, tabs_tuple):
+                loop_through_sheets(csv, tab)
         
             print("Entering hibernaiton mode\n")
 
@@ -98,9 +62,9 @@ if __name__ == "__main__":
             t = time.localtime()
             print(time.strftime("%H:%M:%S", t))
             print('--------------------')
-        
+
             time.sleep(3600)
             
         except Exception as err:
-            print(err)
+            log.error(err)
             break
