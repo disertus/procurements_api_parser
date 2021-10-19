@@ -50,21 +50,20 @@ if __name__ == "__main__":
     csv_tuple = ['tender_details.csv', 'lots_details.csv', 'awards_details.csv', 'contracts_details.csv', 'items_details.csv']
     tabs_tuple = ('Sheet1', 'lots', 'awards', 'contracts', 'items')
 
-    while 1:
-        try:
-            for csv, tab in zip(csv_tuple, tabs_tuple):
-                loop_through_sheets(csv, tab)
-        
-            print("Entering hibernaiton mode\n")
+    try:
+        for csv, tab in zip(csv_tuple, tabs_tuple):
+            loop_through_sheets(csv, tab)
 
-            print('--------------------')
-            print('Finished writing the existing batch of data')
-            t = time.localtime()
-            print(time.strftime("%H:%M:%S", t))
-            print('--------------------')
+        print("Entering hibernaiton mode\n")
 
-            time.sleep(3600)
-            
-        except Exception as err:
-            log.error(err)
-            break
+        print('--------------------')
+        print('Finished writing the existing batch of data')
+        t = time.localtime()
+        print(time.strftime("%H:%M:%S", t))
+        print('--------------------')
+
+        time.sleep(3600)
+
+    except Exception as err:
+        log.error(err)
+        break
