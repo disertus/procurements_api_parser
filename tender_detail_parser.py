@@ -240,7 +240,6 @@ if __name__ == '__main__':
 
     try:
         loop_through_ids()
-        time.sleep(3600)
     except Exception as e:
         log.error("This should have never happened:")
         log.error(e)

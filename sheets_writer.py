@@ -62,7 +62,5 @@ if __name__ == "__main__":
         print(time.strftime("%H:%M:%S", t))
         print('--------------------')
 
-        time.sleep(3600)
-
     except Exception as err:
         log.error(err)
