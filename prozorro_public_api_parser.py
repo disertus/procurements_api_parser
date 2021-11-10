@@ -88,12 +88,12 @@ class ProzorroCronScrapper:
 
 if __name__ == '__main__':
         print('Beginning to retrieve the API data')
+        db.create_database()
         dk_codes_tuple = ('72410000-7', '72411000-4')
         parser = ProzorroCronScrapper(date_offset='2021-10-04T08:45:00.813088+03:00',
                                       category='tenders',
                                       dk_code=dk_codes_tuple,
                                       csv_output_filename='data.csv')
-        db.create_database()
         parser.loop_through_pages()
 
 

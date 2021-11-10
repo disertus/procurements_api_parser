@@ -1,6 +1,6 @@
 import logging as log
 import sqlite3
-from prozorro_api_parser.parser_utils.config import db_address
+from parser_utils.config import db_address
 
 
 con = sqlite3.connect(db_address)
@@ -9,7 +9,7 @@ def create_database():
     try:
         with con:
             con.execute(('''CREATE TABLE IF NOT EXISTS tender_ids
-            (tender_ids text PRIMARY KEY NOT NULL);'''))
+            (tender_id text PRIMARY KEY NOT NULL);'''))
     except sqlite3.OperationalError as err:
         log.error(err)
 

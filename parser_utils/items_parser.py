@@ -1,4 +1,4 @@
-from prozorro_api_parser.parser_utils.awards_parser import error_handler
+from parser_utils.awards_parser import error_handler
 
 
 @error_handler
