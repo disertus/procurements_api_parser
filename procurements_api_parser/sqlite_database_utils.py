@@ -1,6 +1,6 @@
 import logging as log
 import sqlite3
-from parser_utils.config import db_address
+from procurements_api_parser.config import db_address
 
 
 con = sqlite3.connect(db_address)

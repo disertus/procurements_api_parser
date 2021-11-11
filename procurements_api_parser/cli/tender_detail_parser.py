@@ -2,13 +2,13 @@ import logging as log
 import pandas as pd
 from prozorro_public_api_parser import ProzorroCronScrapper
 import time
-import parser_utils.awards_parser as awards_parser
-import parser_utils.bids_parser as bids_parser
-import parser_utils.contracts_parser as contracts_parser
-import parser_utils.items_parser as items_parser
-import parser_utils.lots_parser as lots_parser
-import parser_utils.tender_parser as tender_parser
-import parser_utils.sqlite_database_utils as db
+import procurements_api_parser.awards_parser as awards_parser
+import procurements_api_parser.bids_parser as bids_parser
+import procurements_api_parser.contracts_parser as contracts_parser
+import procurements_api_parser.items_parser as items_parser
+import procurements_api_parser.lots_parser as lots_parser
+import procurements_api_parser.tender_parser as tender_parser
+import procurements_api_parser.sqlite_database_utils as db
 from tqdm import tqdm
 
 
@@ -214,7 +214,7 @@ def loop_through_ids():
                 bids_details.append(list_item)
         except Exception as err:
             log.debug(err)
-    
+
     write_to_csv(tender_details, "tender_details.csv")
     write_to_csv(lots_details, "lots_details.csv")
     write_to_csv(contracts_details, "contracts_details.csv")
@@ -229,7 +229,7 @@ def loop_through_ids():
     print('--------------------')
 
 
-if __name__ == '__main__':
+def main():
     print('Starting to extract tender details:')
     dk_codes_tuple = ('72410000-7', '72411000-4')
     inst = ProzorroCronScrapper(date_offset='2021-07-20',
@@ -243,5 +243,3 @@ if __name__ == '__main__':
     except Exception as e:
         log.error("This should have never happened:")
         log.error(e)
-
-

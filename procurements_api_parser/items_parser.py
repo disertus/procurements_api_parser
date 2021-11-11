@@ -1,4 +1,4 @@
-from parser_utils.awards_parser import error_handler
+from procurements_api_parser.awards_parser import error_handler
 
 
 @error_handler
@@ -54,4 +54,3 @@ def get_item_region(tender_item):
 @error_handler
 def get_item_postal_code(tender_item):
     return tender_item['deliveryAddress']['postalCode']
-

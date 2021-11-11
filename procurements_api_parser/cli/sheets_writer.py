@@ -12,7 +12,7 @@ def write_to_gs(sheet_id: str, path_to_token: str, dataframe, tab_name: str):
     wks = google_sheet.worksheet_by_title(tab_name)
 
     #starts writing the data from 2 row and 2 column of a google sheet, which leaves the possibility to define column headers manually inside gs
-    wks.set_dataframe(dataframe, (2,2)) 
+    wks.set_dataframe(dataframe, (2,2))
     print('data written')
 
 
@@ -46,7 +46,7 @@ def loop_through_sheets(source_csv_filename: str, destination_tab_name: str) -> 
         log.error(f'An error occurred while writing {source_csv_filename} data to the {destination_tab_name} GS tab: {err}')
 
 
-if __name__ == "__main__":
+def main():
     csv_tuple = ['tender_details.csv', 'lots_details.csv', 'awards_details.csv', 'contracts_details.csv', 'items_details.csv']
     tabs_tuple = ('Sheet1', 'lots', 'awards', 'contracts', 'items')
 
