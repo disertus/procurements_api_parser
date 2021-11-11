@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "procurements_api_parser"
-version = "0.1.0"
+version = "0.2.0"
 description = "Ukrainian Openprocurement API parser"
 authors = ["Your Name <you@example.com>"]
 license = "MIT"
@@ -20,6 +20,11 @@ tqdm = "^4.62.3"
 urllib3 = "^1.26.7"
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+prozorro_public_api_parser = "procurements_api_parser.cli.prozorro_public_api_parser:main"
+sheets_writer = "procurements_api_parser.cli.sheets_writer:main"
+tender_detail_parser = "procurements_api_parser.cli.tender_detail_parser:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

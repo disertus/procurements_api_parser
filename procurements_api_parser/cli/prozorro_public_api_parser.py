@@ -13,7 +13,7 @@ import procurements_api_parser.config as cfg
 
 class ProzorroCronScrapper:
     base_url = 'https://api.openprocurement.org/api/2.5/'
-    
+
     def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str, interval: float = 0.7):
         self.start_date_offset = date_offset        #timestamp which serves as a starting point for parsing
         self.dk_code = dk_code                      #procurement category code for filtering
@@ -29,12 +29,12 @@ class ProzorroCronScrapper:
         except Exception as err:
             log.warning(err)
 
-    
+
     def retrieve_next_page_offset(self, request_response):
         """Gets the offset timestamp which marks the beginning of the next batch of tenders (each batch contains ~100 tender IDs)"""
         return request_response['next_page']['offset']
 
-    
+
     def write_tender(self, values_list: list):
         """Write the tender_id into a local database and appends the value to a csv file (for those unwilling to dig into sqlite)"""
         db.insert_tender_id_into_db(values_list[0])
@@ -62,7 +62,7 @@ class ProzorroCronScrapper:
         except Exception as err:
             log.error(err)
 
-    
+
     def loop_through_tenders(self, response_dict):
         """Go through tenders"""
         for i in tqdm(response_dict['data']):
@@ -85,15 +85,12 @@ class ProzorroCronScrapper:
             except:
                 time.sleep(cfg.sleep_time_if_disconnected) #todo: import this value from a config file
 
-
-if __name__ == '__main__':
-        print('Beginning to retrieve the API data')
-        db.create_database()
-        dk_codes_tuple = ('72410000-7', '72411000-4')
-        parser = ProzorroCronScrapper(date_offset='2021-10-04T08:45:00.813088+03:00',
-                                      category='tenders',
-                                      dk_code=dk_codes_tuple,
-                                      csv_output_filename='data.csv')
-        parser.loop_through_pages()
-
-
+def main():
+    print('Beginning to retrieve the API data')
+    db.create_database()
+    dk_codes_tuple = ('72410000-7', '72411000-4')
+    parser = ProzorroCronScrapper(date_offset='2021-10-04T08:45:00.813088+03:00',
+                                    category='tenders',
+                                    dk_code=dk_codes_tuple,
+                                    csv_output_filename='data.csv')
+    parser.loop_through_pages()

@@ -214,7 +214,7 @@ def loop_through_ids():
                 bids_details.append(list_item)
         except Exception as err:
             log.debug(err)
-    
+
     write_to_csv(tender_details, "tender_details.csv")
     write_to_csv(lots_details, "lots_details.csv")
     write_to_csv(contracts_details, "contracts_details.csv")
@@ -229,7 +229,7 @@ def loop_through_ids():
     print('--------------------')
 
 
-if __name__ == '__main__':
+def main():
     print('Starting to extract tender details:')
     dk_codes_tuple = ('72410000-7', '72411000-4')
     inst = ProzorroCronScrapper(date_offset='2021-07-20',
@@ -243,5 +243,3 @@ if __name__ == '__main__':
     except Exception as e:
         log.error("This should have never happened:")
         log.error(e)
-
-
