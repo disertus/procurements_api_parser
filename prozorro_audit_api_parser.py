@@ -1,5 +1,5 @@
 from prozorro_public_api_parser import ProzorroCronScrapper
-import parser_utils.sqlite_database_utils as db
+import procurements_api_parser.sqlite_database_utils as db
 import logging as log
 import csv
 

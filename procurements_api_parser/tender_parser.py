@@ -1,5 +1,5 @@
 import logging as log
-from parser_utils.awards_parser import error_handler
+from procurements_api_parser.awards_parser import error_handler
 
 
 @error_handler

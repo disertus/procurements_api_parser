@@ -1,4 +1,4 @@
-from parser_utils.awards_parser import error_handler
+from procurements_api_parser.awards_parser import error_handler
 
 
 @error_handler
@@ -44,4 +44,3 @@ def get_bid_related_lot_id(lot_value):
 @error_handler
 def get_bid_related_participation_url(lot_value):
     return lot_value['participationUrl']
-

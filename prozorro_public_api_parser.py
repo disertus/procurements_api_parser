@@ -4,8 +4,8 @@ import requests
 import json
 import logging as log
 import time
-import parser_utils.sqlite_database_utils as db
-import parser_utils.config as cfg
+import procurements_api_parser.sqlite_database_utils as db
+import procurements_api_parser.config as cfg
 
 
 #todo: store the timestamp of the last offset for each iteration, execution should start from it

@@ -1,4 +1,4 @@
-from parser_utils.awards_parser import error_handler
+from procurements_api_parser.awards_parser import error_handler
 
 
 @error_handler
@@ -59,4 +59,3 @@ def get_complaint_resolution_type(complaint):
 @error_handler
 def get_complaint_date_answered(complaint):
     return complaint['dateAnswered']
-

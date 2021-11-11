@@ -1,4 +1,4 @@
-from parser_utils.awards_parser import error_handler
+from procurements_api_parser.awards_parser import error_handler
 
 
 @error_handler
@@ -70,5 +70,3 @@ def get_contract_price_netto(contract):
 @error_handler
 def get_contract_award_id(contract):
     return contract['awardID']
-
-

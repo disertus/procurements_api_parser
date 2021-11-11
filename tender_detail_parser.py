@@ -2,13 +2,13 @@ import logging as log
 import pandas as pd
 from prozorro_public_api_parser import ProzorroCronScrapper
 import time
-import parser_utils.awards_parser as awards_parser
-import parser_utils.bids_parser as bids_parser
-import parser_utils.contracts_parser as contracts_parser
-import parser_utils.items_parser as items_parser
-import parser_utils.lots_parser as lots_parser
-import parser_utils.tender_parser as tender_parser
-import parser_utils.sqlite_database_utils as db
+import procurements_api_parser.awards_parser as awards_parser
+import procurements_api_parser.bids_parser as bids_parser
+import procurements_api_parser.contracts_parser as contracts_parser
+import procurements_api_parser.items_parser as items_parser
+import procurements_api_parser.lots_parser as lots_parser
+import procurements_api_parser.tender_parser as tender_parser
+import procurements_api_parser.sqlite_database_utils as db
 from tqdm import tqdm
 
 
