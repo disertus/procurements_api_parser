@@ -3,6 +3,7 @@ import procurements_api_parser.sqlite_database_utils as db
 import logging as log
 import csv
 
+# docs available here: https://prozorro-audit-api.readthedocs.io/uk/latest/monitoring/tutorial/creation.html
 
 class AuditCronScrapper(ProzorroCronScrapper):
     def filter_tenders_by_dk(self, response_body):
