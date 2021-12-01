@@ -12,7 +12,7 @@ def get_complaint_readable_id(complaint):
 
 
 @error_handler
-def get_complaint_type(complaint):
+def get_complaint_related_lot(complaint):
     return complaint['relatedLot']
 
 
@@ -32,6 +32,11 @@ def get_complaint_status(complaint):
 
 
 @error_handler
+def get_complaint_author_id(complaint):
+    return complaint['author']['identifier']['id']
+
+
+@error_handler
 def get_complaint_author_name(complaint):
     return complaint['author']['name']
 
@@ -44,11 +49,6 @@ def get_complaint_author_contact_name(complaint):
 @error_handler
 def get_complaint_author_contact_phone(complaint):
     return complaint['author']['contactPoint']['telephone']
-
-
-@error_handler
-def get_complaint_author_contact_phone(complaint):
-    return complaint['author']['identifier']['id']
 
 
 @error_handler

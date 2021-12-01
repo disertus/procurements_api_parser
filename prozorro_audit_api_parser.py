@@ -24,14 +24,15 @@ class AuditCronScrapper(ProzorroCronScrapper):
 
 
 def check_if_in_parsed_tenders(checked_tender_id):
-    for tender in db.fetch_from_database():
-        if checked_tender_id == tender[0]:
-            return True
+    if db.check_if_tender_in_db(checked_tender_id):
+    # for tender in db.fetch_from_database():
+    #     if checked_tender_id == tender[0]:
+        return True
 
 
 AuditCronScrapper.base_url = 'https://audit-api.prozorro.gov.ua/api/2.5/'
 
-inst = AuditCronScrapper(date_offset='2021-10-07T08:45:00.813088+03:00',
+inst = AuditCronScrapper(date_offset='2021-07-20T08:45:00.813088+03:00',
                          category='monitorings',
                          dk_code=('72410000-7', '72411000-4'),
                          csv_output_filename='audit_data.csv',

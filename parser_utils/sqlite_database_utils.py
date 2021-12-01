@@ -28,3 +28,10 @@ def fetch_from_database():
             return con.execute("SELECT tender_id FROM tender_ids").fetchall()
     except Exception:
         log.warning('Unable to fetch data from database.')
+
+def check_if_tender_in_db(tender_id):
+    try:
+        with con:
+            return con.execute("SELECT tender_id FROM tender_ids WHERE tender_id = (?)", (tender_id,)).fetchall()
+    except Exception:
+        log.debug('The tender is not in the database.')

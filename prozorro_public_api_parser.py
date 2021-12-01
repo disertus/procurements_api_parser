@@ -13,6 +13,7 @@ import parser_utils.config as cfg
 
 class ProzorroCronScrapper:
     base_url = 'https://api.openprocurement.org/api/2.5/'
+    alternative_base_url = 'https://public-api.prozorro.gov.ua/api/2.5/'
     
     def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str, interval: float = 0.7):
         self.start_date_offset = date_offset        #timestamp which serves as a starting point for parsing
