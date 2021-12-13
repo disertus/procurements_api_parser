@@ -8,12 +8,33 @@ import parser_utils.complaints_parser as complaints_parser
 import parser_utils.contracts_parser as contracts_parser
 import parser_utils.items_parser as items_parser
 import parser_utils.lots_parser as lots_parser
+import parser_utils.milestones_parser as milestones_parser
 import parser_utils.tender_parser as tender_parser
 import parser_utils.sqlite_database_utils as db
 from tqdm import tqdm
 
 
 output_filename = 'tender_details.csv'
+
+
+def parse_milestones(response_body):
+    data = response_body['data']
+    tender_id = tender_parser.get_tender_id(data)
+
+    try:
+        for milestone in data['milestones']:
+            values_list = []
+            if milestone['code'] == "prepayment":
+                values_list.append(tender_id)
+                values_list.append(milestones_parser.get_milestone_id(milestone))
+                values_list.append(milestones_parser.get_prepayment_related_lot(milestone))
+                values_list.append(milestones_parser.get_prepayment_percentage(milestone))
+                values_list.append(milestones_parser.get_prepayment_duration(milestone))
+
+                yield values_list
+
+    except KeyError as err:
+        log.debug(err)
 
 
 def parse_complaints(response_body):
@@ -206,6 +227,7 @@ def loop_through_ids():
     items_details = []
     bids_details = []
     complaints_details = []
+    milestones_details = []
 
     for row in tqdm(db.fetch_from_database()):
         response_body = inst.prozorro_request(f'/{row[0]}?opt_pretty=1')
@@ -250,6 +272,12 @@ def loop_through_ids():
                 complaints_details.append(list_item)
         except Exception as err:
             log.debug(err)
+
+        try:
+            for list_item in parse_milestones(response_body):
+                milestones_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
     
     write_to_csv(tender_details, "tender_details.csv")
     write_to_csv(lots_details, "lots_details.csv")
@@ -258,6 +286,7 @@ def loop_through_ids():
     write_to_csv(items_details, "items_details.csv")
     write_to_csv(bids_details, "bids_details.csv")
     write_to_csv(complaints_details, "complaints_details.csv")
+    write_to_csv(milestones_details, "milestones_details.csv")
 
     print('\n--------------------')
     print('Finished parsing the existing batch of data')
