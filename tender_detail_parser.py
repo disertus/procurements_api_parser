@@ -210,40 +210,40 @@ def loop_through_ids():
     for row in tqdm(db.fetch_from_database()):
         response_body = inst.prozorro_request(f'/{row[0]}?opt_pretty=1')
 
-        # try:
-        #     tender_details.append(inst.parse_tender(response_body))
-        # except Exception as err:
-        #     log.debug(err)
-        #
-        # try:
-        #     for list_item in parse_lots(response_body):
-        #         lots_details.append(list_item)
-        # except Exception as err:
-        #     log.debug(err)
-        #
-        # try:
-        #     for list_item in parse_contracts(response_body):
-        #         contracts_details.append(list_item)
-        # except Exception as err:
-        #     log.debug(err)
-        #
-        # try:
-        #     for list_item in parse_awards(response_body):
-        #         awards_details.append(list_item)
-        # except Exception as err:
-        #     log.debug(err)
-        #
-        # try:
-        #     for list_item in parse_items(response_body):
-        #         items_details.append(list_item)
-        # except Exception as err:
-        #     log.debug(err)
-        #
-        # try:
-        #     for list_item in parse_bids(response_body):
-        #         bids_details.append(list_item)
-        # except Exception as err:
-        #     log.debug(err)
+        try:
+            tender_details.append(inst.parse_tender(response_body))
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_lots(response_body):
+                lots_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_contracts(response_body):
+                contracts_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_awards(response_body):
+                awards_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_items(response_body):
+                items_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
+
+        try:
+            for list_item in parse_bids(response_body):
+                bids_details.append(list_item)
+        except Exception as err:
+            log.debug(err)
 
         try:
             for list_item in parse_complaints(response_body):
@@ -251,12 +251,12 @@ def loop_through_ids():
         except Exception as err:
             log.debug(err)
     
-    # write_to_csv(tender_details, "tender_details.csv")
-    # write_to_csv(lots_details, "lots_details.csv")
-    # write_to_csv(contracts_details, "contracts_details.csv")
-    # write_to_csv(awards_details, "awards_details.csv")
-    # write_to_csv(items_details, "items_details.csv")
-    # write_to_csv(bids_details, "bids_details.csv")
+    write_to_csv(tender_details, "tender_details.csv")
+    write_to_csv(lots_details, "lots_details.csv")
+    write_to_csv(contracts_details, "contracts_details.csv")
+    write_to_csv(awards_details, "awards_details.csv")
+    write_to_csv(items_details, "items_details.csv")
+    write_to_csv(bids_details, "bids_details.csv")
     write_to_csv(complaints_details, "complaints_details.csv")
 
     print('\n--------------------')
