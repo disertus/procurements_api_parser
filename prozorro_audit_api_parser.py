@@ -4,6 +4,7 @@ import logging as log
 import csv
 
 
+
 class AuditCronScrapper(ProzorroCronScrapper):
     def filter_tenders_by_dk(self, response_body):
         try:
