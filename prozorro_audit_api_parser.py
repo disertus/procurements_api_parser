@@ -10,6 +10,7 @@ class AuditCronScrapper(ProzorroCronScrapper):
             if check_if_in_parsed_tenders(tender := response_body.get('data').get('tender_id')):
                 print('\nFound an audit for a provider services procurement:')
                 print(tender)
+                self.write_tender([tender])
         except Exception as err:
             log.error(err)
 
@@ -30,12 +31,13 @@ def check_if_in_parsed_tenders(checked_tender_id):
         return True
 
 
-AuditCronScrapper.base_url = 'https://audit-api.prozorro.gov.ua/api/2.5/'
+if __name__ == "__main__":
+    AuditCronScrapper.base_url = 'https://audit-api.prozorro.gov.ua/api/2.5/'
 
-inst = AuditCronScrapper(date_offset='2021-07-20T08:45:00.813088+03:00',
-                         category='monitorings',
-                         dk_code=('72410000-7', '72411000-4'),
-                         csv_output_filename='audit_data.csv',
-                         interval=0.3)
+    inst = AuditCronScrapper(date_offset='2021-11-18T08:45:00.813088+03:00',
+                             category='monitorings',
+                             dk_code=('72410000-7', '72411000-4'),
+                             csv_output_filename='audit_data.csv',
+                             interval=0.3)
 
-inst.loop_through_pages()
+    inst.loop_through_pages()
