@@ -27,6 +27,21 @@ def get_bid_timestamp(bid):
 
 
 @error_handler
+def get_bid_value_amount(bid):
+    return bid['value']['amount']
+
+
+@error_handler
+def get_bid_value_VAT(bid):
+    return bid['value']['valueAddedTaxIncluded']
+
+
+@error_handler
+def get_bid_participation_url(bid):
+    return bid['participationUrl']
+
+
+@error_handler
 def get_bid_lot_value_amount(lot_value):
     return lot_value['value']['amount']
 
@@ -39,7 +54,6 @@ def get_bid_lot_value_VAT(lot_value):
 @error_handler
 def get_bid_related_lot_id(lot_value):
     return lot_value['relatedLot']
-
 
 @error_handler
 def get_bid_related_participation_url(lot_value):

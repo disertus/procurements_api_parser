@@ -106,20 +106,40 @@ def parse_bids(response_body):
     tender_id = tender_parser.get_tender_id(data)
 
     for bid in data['bids']:
-        for lot_value in bid['lotValues']:
+        try:
+            for lot_value in bid['lotValues']:
+                values_list = []
+                values_list.append(tender_id)
+                values_list.append(bids_parser.get_bid_related_lot_id(lot_value))
+                values_list.append(bids_parser.get_bid_id(bid))
+                values_list.append(bids_parser.get_bid_status(bid))
+                values_list.append(bids_parser.get_bid_tenderer_id(bid))
+                values_list.append(bids_parser.get_bid_tenderer_name(bid))
+                values_list.append(bids_parser.get_bid_timestamp(bid))
+                values_list.append(bids_parser.get_bid_lot_value_amount(lot_value))
+                values_list.append(bids_parser.get_bid_lot_value_VAT(lot_value))
+                values_list.append(bids_parser.get_bid_related_participation_url(lot_value))
+
+                yield values_list
+        except KeyError as err:
+            log.debug(err)
+
+        try:
             values_list = []
             values_list.append(tender_id)
-            values_list.append(bids_parser.get_bid_related_lot_id(lot_value))
+            values_list.append('NaN')
             values_list.append(bids_parser.get_bid_id(bid))
             values_list.append(bids_parser.get_bid_status(bid))
             values_list.append(bids_parser.get_bid_tenderer_id(bid))
             values_list.append(bids_parser.get_bid_tenderer_name(bid))
             values_list.append(bids_parser.get_bid_timestamp(bid))
-            values_list.append(bids_parser.get_bid_lot_value_amount(lot_value))
-            values_list.append(bids_parser.get_bid_lot_value_VAT(lot_value))
-            values_list.append(bids_parser.get_bid_related_participation_url(lot_value))
+            values_list.append(bids_parser.get_bid_value_amount(bid))
+            values_list.append(bids_parser.get_bid_value_VAT(bid))
+            values_list.append(bids_parser.get_bid_participation_url(bid))
 
             yield values_list
+        except KeyError as err:
+            log.debug(err)
 
 
 def parse_awards(response_body):
@@ -203,6 +223,7 @@ def parse_tender(response_body):
         values_list.append(tender_parser.get_tender_plan_id(data))
         values_list.append(tender_parser.get_tender_lots_count(data))
         values_list.append(tender_parser.get_tender_auction_start_date(data))
+        values_list.append(tender_parser.get_number_of_bids(data))
 
         return values_list
     except Exception as err:

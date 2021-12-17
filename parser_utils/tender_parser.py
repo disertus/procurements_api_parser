@@ -140,9 +140,7 @@ def get_tender_auction_start_date(data):
         log.debug(f'No data about auction date was found: {err}')
         return "NaN"
 
+@error_handler
+def get_number_of_bids(data):
+    return data['numberOfBids']
 
-
-
-
-if __name__ == "__main__":
-    print("Initialized")
