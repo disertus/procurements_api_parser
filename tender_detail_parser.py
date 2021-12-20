@@ -21,9 +21,9 @@ def parse_milestones(response_body):
     data = response_body['data']
     tender_id = tender_parser.get_tender_id(data)
 
-    try:
-        for milestone in data['milestones']:
-            values_list = []
+    for milestone in data['milestones']:
+        values_list = []
+        try:
             if milestone['code'] == "prepayment":
                 values_list.append(tender_id)
                 values_list.append(milestones_parser.get_milestone_id(milestone))
@@ -33,8 +33,8 @@ def parse_milestones(response_body):
 
                 yield values_list
 
-    except KeyError as err:
-        log.debug(err)
+        except KeyError as err:
+            log.debug(err)
 
 
 def parse_complaints(response_body):
