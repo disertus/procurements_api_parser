@@ -1,3 +1,5 @@
+import aiohttp
+import asyncio
 import csv
 from tqdm import tqdm
 import requests
@@ -23,10 +25,9 @@ class ProzorroCronScrapper:
         self.output_filename = csv_output_filename  #
 
 
-    def prozorro_request(self, params):
+    async def prozorro_request(self, session, params):
         try:
-            response_body = requests.get(f"{self.base_url}/{self.category}{params}")
-            return json.loads(response_body.text)
+            return session.get(f"{self.base_url}/{self.category}{params}")
         except Exception as err:
             log.warning(err)
 
@@ -63,13 +64,23 @@ class ProzorroCronScrapper:
         except Exception as err:
             log.error(err)
 
-    
-    def loop_through_tenders(self, response_dict):
+
+    async def loop_through_tenders(self, response_dict):
         """Go through tenders"""
-        for i in tqdm(response_dict['data']):
-            time.sleep(self.interval)
-            get_response = self.prozorro_request(f"/{i['id']}")
-            self.filter_tenders_by_dk(get_response)
+        print("beginning to loop through tenders")
+        async with aiohttp.ClientSession() as session:
+            print("collecting tasts")
+            tasks = [self.prozorro_request(session, f"/{i['id']}") for i in response_dict['data']]
+            responses = await asyncio.gather(*tasks)
+            print("collected tasks")
+            results = []
+            for response in responses:
+                results.append(await response.json())
+            print('got all results')
+
+            for resp in results:
+                print("filtering")
+                self.filter_tenders_by_dk(resp)
 
 
     def loop_through_pages(self):
@@ -77,13 +88,17 @@ class ProzorroCronScrapper:
         offset = self.start_date_offset #offset corresponds marks the beginning of a new batch of tenders
         while 1:
             try:
-                response_body = self.prozorro_request(f'?offset={offset}')
+                print("getting the initial response")
+                response_body = requests.get(f"{self.base_url}/{self.category}?offset={offset}")
+                print(json.loads(response_body.text))
+                response_body = json.loads(response_body.text)
                 offset = self.retrieve_next_page_offset(response_body)
                 print('--------')
                 print(offset)
-                self.loop_through_tenders(response_body)
+                asyncio.run(self.loop_through_tenders(response_body))
                 time.sleep(self.interval)
-            except:
+            except Exception as e:
+                print(e)
                 time.sleep(cfg.sleep_time_if_disconnected) #todo: import this value from a config file
 
 
