@@ -2,6 +2,7 @@ import aiohttp
 import asyncio
 import csv
 from tqdm import tqdm
+from datetime import datetime
 import requests
 import json
 import logging as log
@@ -17,7 +18,7 @@ class ProzorroCronScrapper:
     base_url = 'https://api.openprocurement.org/api/2.5/'
     alternative_base_url = 'https://public-api.prozorro.gov.ua/api/2.5/'
     
-    def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str, interval: float = 0.7):
+    def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str, interval: float = 1.5):
         self.start_date_offset = date_offset        #timestamp which serves as a starting point for parsing
         self.dk_code = dk_code                      #procurement category code for filtering
         self.interval = interval                    #interval between requests in seconds
@@ -68,18 +69,15 @@ class ProzorroCronScrapper:
     async def loop_through_tenders(self, response_dict):
         """Go through tenders"""
         print("beginning to loop through tenders")
+        results = []
         async with aiohttp.ClientSession() as session:
-            print("collecting tasts")
-            tasks = [self.prozorro_request(session, f"/{i['id']}") for i in response_dict['data']]
+            tasks = [session.get(self.base_url + self.category + f"/{i['id']}") for i in tqdm(response_dict['data'])]
             responses = await asyncio.gather(*tasks)
             print("collected tasks")
-            results = []
             for response in responses:
                 results.append(await response.json())
-            print('got all results')
 
             for resp in results:
-                print("filtering")
                 self.filter_tenders_by_dk(resp)
 
 
@@ -90,11 +88,10 @@ class ProzorroCronScrapper:
             try:
                 print("getting the initial response")
                 response_body = requests.get(f"{self.base_url}/{self.category}?offset={offset}")
-                print(json.loads(response_body.text))
                 response_body = json.loads(response_body.text)
                 offset = self.retrieve_next_page_offset(response_body)
                 print('--------')
-                print(offset)
+                print(datetime.fromtimestamp(offset))
                 asyncio.run(self.loop_through_tenders(response_body))
                 time.sleep(self.interval)
             except Exception as e:
@@ -106,7 +103,7 @@ if __name__ == '__main__':
         print('Beginning to retrieve the API data')
         db.create_database()
         dk_codes_tuple = ('72410000-7', '72411000-4')
-        parser = ProzorroCronScrapper(date_offset='2021-10-04T08:45:00.813088+03:00',
+        parser = ProzorroCronScrapper(date_offset='2021-06-01T11:19:01.079695+03:00',
                                       category='tenders',
                                       dk_code=dk_codes_tuple,
                                       csv_output_filename='data.csv')
