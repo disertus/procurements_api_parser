@@ -18,12 +18,13 @@ class ProzorroCronScrapper:
     base_url = 'https://api.openprocurement.org/api/2.5/'
     alternative_base_url = 'https://public-api.prozorro.gov.ua/api/2.5/'
     
-    def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str, interval: float = 1.5):
-        self.start_date_offset = date_offset        #timestamp which serves as a starting point for parsing
-        self.dk_code = dk_code                      #procurement category code for filtering
-        self.interval = interval                    #interval between requests in seconds
-        self.category = category                    #api category
+    def __init__(self, date_offset: str, dk_code: str, category: str, csv_output_filename: str):
+        self.start_date_offset = date_offset        # timestamp which serves as a starting point for parsing
+        self.dk_code = dk_code                      # procurement category code for filtering
+        self.interval = 1                           # interval between requests in seconds
+        self.category = category                    # api category
         self.output_filename = csv_output_filename  #
+        self.batch_size = 40                        # number of elements inside a page at /tenders endpoint. Prozorro's ratelimit seems to be set at ~50 rps, throttles afterwards
 
 
     async def prozorro_request(self, session, params):
@@ -68,12 +69,11 @@ class ProzorroCronScrapper:
 
     async def loop_through_tenders(self, response_dict):
         """Go through tenders"""
-        print("beginning to loop through tenders")
         results = []
         async with aiohttp.ClientSession() as session:
-            tasks = [session.get(self.base_url + self.category + f"/{i['id']}") for i in tqdm(response_dict['data'])]
+            tasks = [session.get(self.base_url + self.category + f"/{i['id']}")
+                     for i in tqdm(response_dict['data'])]
             responses = await asyncio.gather(*tasks)
-            print("collected tasks")
             for response in responses:
                 results.append(await response.json())
 
@@ -87,7 +87,7 @@ class ProzorroCronScrapper:
         while 1:
             try:
                 print("getting the initial response")
-                response_body = requests.get(f"{self.base_url}/{self.category}?offset={offset}")
+                response_body = requests.get(f"{self.base_url}/{self.category}?offset={offset}&limit={self.batch_size}")
                 response_body = json.loads(response_body.text)
                 offset = self.retrieve_next_page_offset(response_body)
                 print('--------')
@@ -95,18 +95,19 @@ class ProzorroCronScrapper:
                 asyncio.run(self.loop_through_tenders(response_body))
                 time.sleep(self.interval)
             except Exception as e:
-                print(e)
                 time.sleep(cfg.sleep_time_if_disconnected) #todo: import this value from a config file
+                raise Exception(f"Failed to loop over the tender_id stream with the following err message: {e}")
 
 
 if __name__ == '__main__':
         print('Beginning to retrieve the API data')
         db.create_database()
         dk_codes_tuple = ('72410000-7', '72411000-4')
-        parser = ProzorroCronScrapper(date_offset='2021-06-01T11:19:01.079695+03:00',
+        parser = ProzorroCronScrapper(date_offset='2021-06-03T11:04:26.655095+03:00',
                                       category='tenders',
                                       dk_code=dk_codes_tuple,
                                       csv_output_filename='data.csv')
         parser.loop_through_pages()
 
+# todo: write the last date_offset to a file
 
