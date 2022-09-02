@@ -12,7 +12,9 @@ import parser_utils.config as cfg
 
 
 #todo: store the timestamp of the last offset for each iteration, execution should start from it
+# todo: replace aiohttp with httpx for more stable async requests?
 
+log.basicConfig(filename="logs.txt", level=log.INFO)
 
 class ProzorroCronScrapper:
     base_url = 'https://api.openprocurement.org/api/2.5/'
@@ -24,12 +26,12 @@ class ProzorroCronScrapper:
         self.interval = 1                           # interval between requests in seconds
         self.category = category                    # api category
         self.output_filename = csv_output_filename  #
-        self.batch_size = 40                        # number of elements inside a page at /tenders endpoint. Prozorro's ratelimit seems to be set at ~50 rps, throttles afterwards
+        self.batch_size = 20                        # number of elements inside a page at /tenders endpoint. Prozorro's ratelimit seems to be set at ~50 rps, throttles afterwards
 
 
-    async def prozorro_request(self, session, params):
+    async def prozorro_request(self, params):
         try:
-            return session.get(f"{self.base_url}/{self.category}{params}")
+            return requests.get(f"{self.base_url}/{self.category}{params}")
         except Exception as err:
             log.warning(err)
 
@@ -71,7 +73,7 @@ class ProzorroCronScrapper:
         """Go through tenders"""
         results = []
         async with aiohttp.ClientSession() as session:
-            tasks = [session.get(self.base_url + self.category + f"/{i['id']}")
+            tasks = [session.get(self.base_url + self.category + f"/{i['id']}", ssl=False)
                      for i in tqdm(response_dict['data'])]
             responses = await asyncio.gather(*tasks)
             for response in responses:
@@ -84,8 +86,10 @@ class ProzorroCronScrapper:
     def loop_through_pages(self):
         """Infinite loop which continually checks for updates in API data"""
         offset = self.start_date_offset #offset corresponds marks the beginning of a new batch of tenders
+        old_offset = 0
         while 1:
             try:
+                old_offset = offset
                 print("getting the initial response")
                 response_body = requests.get(f"{self.base_url}/{self.category}?offset={offset}&limit={self.batch_size}")
                 response_body = json.loads(response_body.text)
@@ -95,15 +99,16 @@ class ProzorroCronScrapper:
                 asyncio.run(self.loop_through_tenders(response_body))
                 time.sleep(self.interval)
             except Exception as e:
+                offset = old_offset
                 time.sleep(cfg.sleep_time_if_disconnected) #todo: import this value from a config file
-                raise Exception(f"Failed to loop over the tender_id stream with the following err message: {e}")
+                log.error(f"Failed to loop over the tender_id stream with the following err message: {e}")
 
 
 if __name__ == '__main__':
         print('Beginning to retrieve the API data')
         db.create_database()
         dk_codes_tuple = ('72410000-7', '72411000-4')
-        parser = ProzorroCronScrapper(date_offset='2021-06-03T11:04:26.655095+03:00',
+        parser = ProzorroCronScrapper(date_offset='2021-12-30T00:01:01.636613+03:00',
                                       category='tenders',
                                       dk_code=dk_codes_tuple,
                                       csv_output_filename='data.csv')
