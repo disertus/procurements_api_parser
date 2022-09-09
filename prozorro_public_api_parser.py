@@ -11,9 +11,6 @@ import parser_utils.sqlite_database_utils as db
 import parser_utils.config as cfg
 
 
-#todo: store the timestamp of the last offset for each iteration, execution should start from it
-# todo: replace aiohttp with httpx for more stable async requests?
-
 log.basicConfig(filename="logs.txt", level=log.INFO)
 
 class ProzorroCronScrapper:
@@ -29,9 +26,9 @@ class ProzorroCronScrapper:
         self.batch_size = 20                        # number of elements inside a page at /tenders endpoint. Prozorro's ratelimit seems to be set at ~50 rps, throttles afterwards
 
 
-    async def prozorro_request(self, params):
+    def prozorro_request(self, params):
         try:
-            return requests.get(f"{self.base_url}/{self.category}{params}")
+            return requests.get(f"{self.base_url}/{self.category}{params}").json()
         except Exception as err:
             log.warning(err)
 
@@ -48,7 +45,7 @@ class ProzorroCronScrapper:
         #temporary - write data into a local csv file apart from database
         with open(f'{self.output_filename}', 'a+') as writefile:
             writer = csv.writer(writefile)
-            writer.writerow(values_list)
+            writer.writerow([values_list[0], datetime.now()])
 
 
     def parse_tender(self, response_body):
@@ -82,15 +79,24 @@ class ProzorroCronScrapper:
             for resp in results:
                 self.filter_tenders_by_dk(resp)
 
+    def write_last_offset(self, offset):
+        with open("last_offset.csv", "w+") as file:
+            if type(offset) == str:
+                file.write(offset)
+                file.flush()
+            elif type(offset) == float:
+                file.write(str(datetime.fromtimestamp(offset)).replace(" ", "T") + "+03:00")
+                file.flush()
+
 
     def loop_through_pages(self):
         """Infinite loop which continually checks for updates in API data"""
-        offset = self.start_date_offset #offset corresponds marks the beginning of a new batch of tenders
+        offset = self.start_date_offset  # offset marks the beginning of a new batch of tenders
         old_offset = 0
         while 1:
             try:
                 old_offset = offset
-                print("getting the initial response")
+                self.write_last_offset(offset)
                 response_body = requests.get(f"{self.base_url}/{self.category}?offset={offset}&limit={self.batch_size}")
                 response_body = json.loads(response_body.text)
                 offset = self.retrieve_next_page_offset(response_body)
@@ -100,7 +106,7 @@ class ProzorroCronScrapper:
                 time.sleep(self.interval)
             except Exception as e:
                 offset = old_offset
-                time.sleep(cfg.sleep_time_if_disconnected) #todo: import this value from a config file
+                time.sleep(cfg.sleep_time_if_disconnected)
                 log.error(f"Failed to loop over the tender_id stream with the following err message: {e}")
 
 
@@ -108,11 +114,17 @@ if __name__ == '__main__':
         print('Beginning to retrieve the API data')
         db.create_database()
         dk_codes_tuple = ('72410000-7', '72411000-4')
-        parser = ProzorroCronScrapper(date_offset='2021-12-30T00:01:01.636613+03:00',
+        try:
+            with open("last_offset.csv", "r") as offset_file:
+                latest_offset = offset_file.read()
+                print(latest_offset)
+        except:
+            latest_offset = '2022-09-09T16:42:43.836550+03:00'
+
+        parser = ProzorroCronScrapper(date_offset=latest_offset,
                                       category='tenders',
                                       dk_code=dk_codes_tuple,
                                       csv_output_filename='data.csv')
         parser.loop_through_pages()
 
-# todo: write the last date_offset to a file
 
