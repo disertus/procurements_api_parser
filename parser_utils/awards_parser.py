@@ -5,7 +5,7 @@ def error_handler(func):
         try:
             return func(*args, **kwargs)
         except KeyError:
-            return "NaN"
+            return None
     return wrapper
 
 
