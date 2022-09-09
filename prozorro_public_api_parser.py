@@ -66,18 +66,17 @@ class ProzorroCronScrapper:
             log.error(err)
 
 
-    async def loop_through_tenders(self, response_dict):
+    async def loop_through_tenders(self, tender_list):
         """Go through tenders"""
         results = []
         async with aiohttp.ClientSession() as session:
             tasks = [session.get(self.base_url + self.category + f"/{i['id']}", ssl=False)
-                     for i in tqdm(response_dict['data'])]
+                     for i in tqdm(tender_list)]
             responses = await asyncio.gather(*tasks)
             for response in responses:
                 results.append(await response.json())
+        return results
 
-            for resp in results:
-                self.filter_tenders_by_dk(resp)
 
     def write_last_offset(self, offset):
         with open("last_offset.csv", "w+") as file:
@@ -102,7 +101,9 @@ class ProzorroCronScrapper:
                 offset = self.retrieve_next_page_offset(response_body)
                 print('--------')
                 print(datetime.fromtimestamp(offset))
-                asyncio.run(self.loop_through_tenders(response_body))
+                results = asyncio.run(self.loop_through_tenders(response_body['data']))
+                for resp in results:
+                    self.filter_tenders_by_dk(resp)
                 time.sleep(self.interval)
             except Exception as e:
                 offset = old_offset
