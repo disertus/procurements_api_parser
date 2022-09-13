@@ -1,4 +1,8 @@
+import asyncio
+import datetime
 import logging as log
+import os
+
 import pandas as pd
 from prozorro_public_api_parser import ProzorroCronScrapper
 import time
@@ -11,8 +15,8 @@ import parser_utils.lots_parser as lots_parser
 import parser_utils.milestones_parser as milestones_parser
 import parser_utils.tender_parser as tender_parser
 import parser_utils.sqlite_database_utils as db
-from tqdm import tqdm
 
+# todo: write output files to a "resulting_data" folder
 
 output_filename = 'tender_details.csv'
 
@@ -127,7 +131,7 @@ def parse_bids(response_body):
         try:
             values_list = []
             values_list.append(tender_id)
-            values_list.append('NaN')
+            values_list.append(None)
             values_list.append(bids_parser.get_bid_id(bid))
             values_list.append(bids_parser.get_bid_status(bid))
             values_list.append(bids_parser.get_bid_tenderer_id(bid))
@@ -239,6 +243,11 @@ def write_to_csv(list_of_lists, output_name):
         log.debug(err)
 
 
+def divide_into_chunks(lst, n):
+    """Divide an array into successive n-sized chunks"""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
 
 def loop_through_ids():
     tender_details = []
@@ -250,74 +259,89 @@ def loop_through_ids():
     complaints_details = []
     milestones_details = []
 
-    for row in tqdm(db.fetch_from_database()):
-        response_body = inst.prozorro_request(f'/{row[0]}?opt_pretty=1')
+    tender_list = db.fetch_from_database()
+    print(f"Number of tender ids in db: {len(tender_list)}")
 
-        try:
-            tender_details.append(inst.parse_tender(response_body))
-        except Exception as err:
-            log.debug(err)
+    for row in divide_into_chunks(tender_list, 10):
+        def parse_responses(batch):
+            try:
+                responses = asyncio.run(inst.loop_through_tenders(batch, 0))
+                for response_body in responses:
+                    try:
+                        tender_details.append(inst.parse_tender(response_body))
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_lots(response_body):
-                lots_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
+                    try:
+                        for list_item in parse_lots(response_body):
+                            lots_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_contracts(response_body):
-                contracts_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
+                    try:
+                        for list_item in parse_contracts(response_body):
+                            contracts_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_awards(response_body):
-                awards_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
+                    try:
+                        for list_item in parse_awards(response_body):
+                            awards_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_items(response_body):
-                items_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
+                    try:
+                        for list_item in parse_items(response_body):
+                            items_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_bids(response_body):
-                bids_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
+                    try:
+                        for list_item in parse_bids(response_body):
+                            bids_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_complaints(response_body):
-                complaints_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
+                    try:
+                        for list_item in parse_complaints(response_body):
+                            complaints_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
 
-        try:
-            for list_item in parse_milestones(response_body):
-                milestones_details.append(list_item)
-        except Exception as err:
-            log.debug(err)
-    
-    write_to_csv(tender_details, "tender_details.csv")
-    write_to_csv(lots_details, "lots_details.csv")
-    write_to_csv(contracts_details, "contracts_details.csv")
-    write_to_csv(awards_details, "awards_details.csv")
-    write_to_csv(items_details, "items_details.csv")
-    write_to_csv(bids_details, "bids_details.csv")
-    write_to_csv(complaints_details, "complaints_details.csv")
-    write_to_csv(milestones_details, "milestones_details.csv")
+                    try:
+                        for list_item in parse_milestones(response_body):
+                            milestones_details.append(list_item)
+                    except Exception as err:
+                        log.debug(err)
+            except Exception as err:
+                log.error(f"Failed to retrieve a response: {err}")
+                time.sleep(inst.interval)
+                parse_responses(batch)
+        parse_responses(row)
+
+        # time.sleep(0.5)
+
+    results_folder_path = f"{os.getcwd()}/resulting_data"
+
+    os.makedirs(results_folder_path, exist_ok=True)
+    write_to_csv(tender_details, f"{results_folder_path}/tender_details.csv")
+    write_to_csv(lots_details, f"{results_folder_path}/lots_details.csv")
+    write_to_csv(contracts_details, f"{results_folder_path}/contracts_details.csv")
+    write_to_csv(awards_details, f"{results_folder_path}/awards_details.csv")
+    write_to_csv(items_details, f"{results_folder_path}/items_details.csv")
+    write_to_csv(bids_details, f"{results_folder_path}/bids_details.csv")
+    write_to_csv(complaints_details, f"{results_folder_path}/complaints_details.csv")
+    write_to_csv(milestones_details, f"{results_folder_path}/milestones_details.csv")
 
     print('\n--------------------')
     print('Finished parsing the existing batch of data')
-    t = time.localtime()
-    print(time.strftime("%H:%M:%S", t))
     print('--------------------')
 
 
 if __name__ == '__main__':
-    print('Starting to extract tender details:')
+    st_time = time.time()
+    print(f"Starting time:", datetime.datetime.now())
+    print('Extracting tender details:')
     dk_codes_tuple = ('72410000-7', '72411000-4')
     inst = ProzorroCronScrapper(date_offset='2021-07-20',
                                 category='tenders',
@@ -330,5 +354,6 @@ if __name__ == '__main__':
     except Exception as e:
         log.error("This should have never happened:")
         log.error(e)
-
+    print(f"End time: ", datetime.datetime.now())
+    print("Total processing time (min):", (time.time() - st_time) / 60)
 

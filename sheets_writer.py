@@ -36,8 +36,8 @@ def format_dataframe(csv_filename):
 def loop_through_sheets(source_csv_filename: str, destination_tab_name: str) -> None:
     try:
         write_to_gs(
-            sheet_id=os.environ['GS_ID'],
-            path_to_token=os.environ['PATH_TO_GS_TOKEN'],
+            sheet_id="1KOFo2OIZPH92mNY7xsVwIU9g4VZOSDMbRKYjb7FdUa0", #os.environ['GS_ID'],
+            path_to_token="gs-api-mdt-key.json",
             dataframe=format_dataframe(source_csv_filename),
             tab_name=destination_tab_name
             )
@@ -47,12 +47,13 @@ def loop_through_sheets(source_csv_filename: str, destination_tab_name: str) -> 
 
 
 if __name__ == "__main__":
-    csv_tuple = ['tender_details.csv', 'lots_details.csv', 'awards_details.csv', 'contracts_details.csv', 'items_details.csv']
+    csv_tuple = ('tender_details.csv', 'lots_details.csv', 'awards_details.csv', 'contracts_details.csv', 'items_details.csv')
     tabs_tuple = ('Sheet1', 'lots', 'awards', 'contracts', 'items')
+    results_path = f"{os.getcwd()}/resulting_data/"
 
     try:
         for csv, tab in zip(csv_tuple, tabs_tuple):
-            loop_through_sheets(csv, tab)
+            loop_through_sheets(results_path + csv, tab)
 
         print("Entering hibernaiton mode\n")
 
